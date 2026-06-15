@@ -38,6 +38,7 @@ This is my backlog:
 - the UI, especially the copy button
 - showing OG content
 - invalid API key crashes the app, so need to make an error message
+- LLM fallback
 
 ---
 

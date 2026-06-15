@@ -40,7 +40,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-os.makedirs("uploads", exist_ok=True)
+# os.makedirs("uploads", exist_ok=True) #currently not in use
 os.makedirs("indexes", exist_ok=True)
 
 
