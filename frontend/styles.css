@@ -1,0 +1,439 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0b1020;
+  --card: #131a2b;
+  --border: rgba(255, 255, 255, 0.08);
+
+  --text: #f8fafc;
+  --secondary: #94a3b8;
+
+  --accent: #8b5cf6;
+  --accent-hover: #7c3aed;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-x: hidden;
+}
+
+/* UTILITY CLASSES - Moved to top/middle for proper scoping fallback cascade rules */
+.hidden {
+  display: none !important; /* Overrides any block declarations below safely */
+}
+
+.background-glow {
+  position: fixed;
+  width: 700px;
+  height: 700px;
+  background: radial-gradient(
+    circle,
+    rgba(139, 92, 246, 0.18),
+    transparent 70%
+  );
+  top: -250px;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.app {
+  width: 100%;
+  max-width: 1000px;
+  position: relative;
+  z-index: 1;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.hero h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.hero p {
+  color: var(--secondary);
+}
+
+.setup-card,
+.status-card,
+.chat-section {
+  background: rgba(19, 26, 43, 0.75);
+  backdrop-filter: blur(18px);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.95rem;
+}
+
+/* Restrict input style to only actual text inputs so it doesn't break files layout */
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: white;
+  border-radius: 14px;
+  padding: 14px;
+  outline: none;
+  transition: 0.2s;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  border-color: var(--accent);
+}
+
+.drop-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 50px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.25s;
+}
+
+.drop-zone:hover {
+  border-color: var(--accent);
+}
+
+.drop-zone.dragover {
+  transform: scale(1.02);
+  border-color: var(--accent);
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.drop-icon {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  color: var(--accent);
+}
+
+.drop-content h3 {
+  margin-bottom: 8px;
+}
+
+.drop-content p {
+  color: var(--secondary);
+}
+
+.file-list {
+  margin-top: 20px;
+}
+
+.file-item {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.file-item i.fa-file-pdf {
+  color: #ef4444;
+}
+
+.remove-file-btn {
+  color: #ef4444;
+  opacity: 0.6;
+  transition: 0.2s;
+}
+
+.remove-file-btn:hover {
+  opacity: 1;
+}
+
+/* BUTTON ENGINE DESIGNATION */
+#uploadBtn {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px;
+  margin-top: 20px;
+  cursor: pointer;
+  font-weight: 600;
+  background: var(--accent);
+  color: white;
+  transition: 0.25s;
+}
+
+#uploadBtn:hover {
+  background: var(--accent-hover);
+}
+
+/* SESSION ACTIONS BUTTON GROUP CONTAINER */
+.session-actions-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.secondary-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  border-radius: 12px;
+  padding: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.secondary-btn:hover {
+  border-color: var(--accent);
+  color: white;
+  background: rgba(139, 92, 246, 0.05);
+}
+
+.status-card {
+  text-align: center;
+}
+
+.status-card i {
+  color: #22c55e;
+  margin-right: 6px;
+}
+
+/* CHAT SECTION PLATFORM ENGINE */
+.chat-section {
+  display: flex;
+  flex-direction: column;
+  height: 650px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 8px;
+}
+
+.message {
+  max-width: 80%;
+  width: max-content; /* Shrinks the bubble if the text is short */
+  min-width: 120px;   /* Ensures copy buttons always have structural room */
+  margin-bottom: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  line-height: 1.6;
+  position: relative;
+  
+  /* CRITICAL FOR TEXT WRAPPING */
+  display: block;
+  word-wrap: break-word;
+  word-break: break-word;
+  white-space: pre-wrap; /* Preserves manual line breaks correctly */
+}
+
+.user {
+  background: var(--accent);
+  margin-left: auto;
+  border-bottom-right-radius: 4px;
+}
+
+.assistant {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  margin-right: auto; /* Keeps assistant left-aligned smoothly */
+  border-bottom-left-radius: 4px;
+}
+
+.chat-input {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.chat-input input {
+  flex: 1;
+}
+
+.chat-input button {
+  width: 140px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 600;
+  background: var(--accent);
+  color: white;
+  transition: 0.25s;
+}
+
+.chat-input button:hover {
+  background: var(--accent-hover);
+}
+
+/* CITATIONS PLACEMENT CHIPS ENGINE */
+.sources {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.1);
+  padding-top: 8px;
+}
+
+.source-chip {
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: #c084fc;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+
+.source-chip:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: var(--accent);
+  color: white;
+}
+
+.source-chip i {
+  font-size: 0.7rem;
+}
+
+.empty-state {
+  text-align: center;
+  margin-top: 80px;
+  color: var(--secondary);
+}
+
+.empty-state ul {
+  list-style: none;
+  margin-top: 10px;
+}
+
+.empty-state li {
+  margin-bottom: 8px;
+}
+
+/* COPY ACTIONS MODAL CONFIGURATION */
+.message-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  opacity: 0;
+  transition: 0.2s;
+}
+
+.message:hover .message-actions {
+  opacity: 1;
+}
+
+.copy-btn {
+  background: transparent !important;
+  border: none !important;
+  width: auto !important;
+  padding: 4px 8px !important;
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.copy-btn:hover {
+  color: white;
+}
+
+/* INSPECTION SYSTEM DIALOGUE WINDOWS */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Ensure modal stays on top of everything */
+}
+
+.modal-content {
+  background: #131a2b;
+  padding: 24px;
+  border-radius: 20px;
+  width: 80%;
+  max-width: 650px;
+  max-height: 70vh;
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.close {
+  float: right;
+  cursor: pointer;
+  font-size: 24px;
+  color: var(--secondary);
+  transition: 0.2s;
+}
+
+.close:hover {
+  color: white;
+}
+
+pre {
+  white-space: pre-wrap;
+  margin-top: 16px;
+  color: #cbd5e1;
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 12px;
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 2.3rem;
+  }
+  .chat-section {
+    height: 75vh;
+  }
+  .chat-input {
+    flex-direction: column;
+  }
+  .chat-input button {
+    width: 100%;
+  }
+  .message {
+    max-width: 95%;
+  }
+  .session-actions-bar {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

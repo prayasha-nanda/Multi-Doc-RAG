@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.venv/
+env/
+
+# Environment Variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Generated Graph Outputs
+graph.html
+static_blueprint.png
+
+# Session Files
+backend/indexes/
+
+# Logs
+*.log
+
+# Testing
+.pytest_cache/
+
+# Build Artifacts
+build/
+lib/
+dist/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Coverage
+.coverage
+htmlcov/

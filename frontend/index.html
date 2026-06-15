@@ -1,0 +1,121 @@
+<!doctype html>
+
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Multi-Document RAG</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+    />
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="background-glow"></div>
+
+    <div class="app">
+      <header class="hero">
+        <h1>Multi-Doc RAG</h1>
+
+        <p>Chat with your PDFs using Gemini 2.5 Flash + FAISS</p>
+      </header>
+
+      <section class="setup-card">
+        <div class="input-group">
+          <label>Gemini API Key</label>
+
+          <input
+            type="password"
+            id="apiKey"
+            placeholder="Enter your Gemini API key"
+          />
+        </div>
+
+        <div id="dropZone" class="drop-zone">
+          <input type="file" id="pdfFiles" accept=".pdf" multiple hidden />
+
+          <div class="drop-content">
+            <i class="fa-solid fa-file-lines drop-icon"></i>
+
+            <h3>Drop PDFs Here</h3>
+
+            <p>or click to browse files</p>
+          </div>
+        </div>
+
+        <div id="fileList" class="file-list"></div>
+
+        <button id="uploadBtn">Index Documents</button>
+      </section>
+
+      <section id="statusCard" class="status-card hidden">Ready</section>
+
+      <div class="session-actions-bar">
+        <button id="newSessionBtn" class="secondary-btn hidden">
+          <i class="fa-solid fa-plus"></i> New Session
+        </button>
+        <button id="downloadChatBtn" class="secondary-btn hidden">
+          <i class="fa-solid fa-download"></i> Download Chat
+        </button>
+      </div>
+
+      <button id="newSessionBtn" class="secondary-btn hidden">
+        New Session
+      </button>
+      <button id="downloadChatBtn" class="secondary-btn hidden">
+        Download Chat
+      </button>
+
+      <section id="chatSection" class="chat-section hidden">
+        <div id="chatMessages" class="chat-messages">
+          <div class="empty-state">
+            <h3>Ask anything about your documents</h3>
+
+            <p>Try:</p>
+
+            <ul>
+              <li>Summarize the document</li>
+              <li>What are the key findings?</li>
+              <li>Explain chapter 3</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="chat-input">
+          <input
+            type="text"
+            id="userInput"
+            placeholder="Ask about your documents..."
+          />
+
+          <button id="sendBtn">Send</button>
+        </div>
+      </section>
+    </div>
+
+    <script src="chat.js"></script>
+
+    <div id="chunkModal" class="modal hidden">
+      <div class="modal-content">
+        <span id="closeModal" class="close">&times;</span>
+
+        <h3 id="modalTitle"></h3>
+
+        <pre id="modalBody"></pre>
+      </div>
+    </div>
+  </body>
+</html>
