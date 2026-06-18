@@ -292,6 +292,7 @@ async function sendMessage() {
   if (!message) return;
 
   sendBtn.disabled = true;
+  userInput.disabled = true;
 
   const empty = chatMessages.querySelector(".empty-state");
   if (empty) empty.remove();
@@ -324,6 +325,8 @@ async function sendMessage() {
     addMessage(`Error: ${err.message}`, "assistant");
   } finally {
     sendBtn.disabled = false;
+    userInput.disabled = false;
+    userInput.focus();
   }
 }
 

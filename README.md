@@ -42,8 +42,7 @@ basic-rag/
 ---
 This is my backlog:
 - tweaking prompts / changing number of chunks sent / temperature etc. - all scenario-based
-- wrap the text inside the speech bubbles on the user side
-- the UI, especially the copy button (also change png font awesome icon to pdf)
+- the UI, especially the copy button
 - showing OG content - mostly implemented
 - invalid API key crashes the app, so need to make an error message (also resource exhausted error)
 - LLM fallback - i will not be going forward with this as i'd like a close book LLM
