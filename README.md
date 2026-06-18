@@ -11,6 +11,7 @@ The system retrieves the most relevant document chunks, filters low-relevance ma
   <img src="https://img.shields.io/badge/LangChain-1C3C3C?style=flat-square&logo=langchain&logoColor=white" />
   <img src="https://img.shields.io/badge/FAISS-044F88?style=flat-square&logo=meta&logoColor=white" />
 </p>
+
 ---
 
 ## Project Structure
