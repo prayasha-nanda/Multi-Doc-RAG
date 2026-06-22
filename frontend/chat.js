@@ -315,7 +315,7 @@ document.addEventListener("selectionchange", () => {
     const rect = range.getBoundingClientRect();
     
     quoteSelectionBtn.style.left = `${rect.left + (rect.width / 2)}px`;
-    quoteSelectionBtn.style.top = `${rect.top + window.scrollY}px`;
+    quoteSelectionBtn.style.top = `${rect.top}px`;
     quoteSelectionBtn.classList.remove("hidden");
   } else {
     // Hide button asynchronously if mouse leaves bounds or selection resets

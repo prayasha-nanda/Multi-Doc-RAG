@@ -27,9 +27,8 @@ body {
   overflow-x: hidden;
 }
 
-/* UTILITY CLASSES - Moved to top/middle for proper scoping fallback cascade rules */
 .hidden {
-  display: none !important; /* Overrides any block declarations below safely */
+  display: none !important; /* Overrides any block declarations below */
 }
 
 .background-glow {
@@ -221,7 +220,7 @@ input[type="password"]:focus {
   margin-right: 6px;
 }
 
-/* CHAT SECTION PLATFORM ENGINE */
+/* CHAT SECTION */
 .chat-section {
   display: flex;
   flex-direction: column;
@@ -297,7 +296,7 @@ input[type="password"]:focus {
   background: var(--accent-hover);
 }
 
-/* CITATIONS PLACEMENT CHIPS ENGINE */
+/* CITATIONS PLACEMENT CHIPS */
 .sources {
   margin-top: 12px;
   display: flex;
@@ -503,10 +502,10 @@ pre {
   height: 100%;
   border-left: 1px solid var(--border);
   background: rgba(11, 16, 32, 0.4);
-  transition: width 0.1s ease-out; /* Smooth snapping on fold closures */
+  transition: width 0.1s ease-out;
 }
 
-/* Collapsed class state trigger layout modification override safely */
+/* Collapsed class state trigger */
 .pdf-panel.collapsed {
   width: 0px !important;
   border-left: none !important;
@@ -593,11 +592,11 @@ pre {
   overflow: hidden;
 }
 
-/* Render text layers visibility configuration layer overrides */
+/* Render text layers */
 .pdf-text-layer {
   position: absolute;
   left: 0; top: 0; right: 0; bottom: 0;
-  opacity: 0.35; /* Keeps selections visible cleanly mapped down across nodes */
+  opacity: 0.35;
   line-height: 1.0;
 }
 
@@ -633,7 +632,6 @@ pre {
   background: var(--accent-hover);
 }
 
-/* Container layout tweak for layout flow */
 .hero-subline {
   display: flex;
   align-items: center;
@@ -642,7 +640,6 @@ pre {
   margin-top: 4px;
 }
 
-/* Minimalist setup adjustment button */
 .toggle-setup-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border);
@@ -662,9 +659,8 @@ pre {
   color: white;
 }
 
-/* --- COLLAPSIBLE SYSTEM FOR SETUP CARD --- */
 .setup-card {
-  max-height: 800px; /* High safety threshold baseline */
+  max-height: 800px;
   opacity: 1;
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
@@ -673,7 +669,6 @@ pre {
               margin-btm 0.4s ease;
 }
 
-/* The state class triggered by JS when minimized */
 .setup-card.minimized {
   max-height: 0px !important;
   opacity: 0 !important;
