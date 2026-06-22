@@ -42,9 +42,10 @@ basic-rag/
 ---
 This is my backlog:
 - tweaking prompts / changing number of chunks sent / temperature etc. - all scenario-based
-- the UI, especially the copy button
+- the UI, especially the copy button (fix the show config in the active session)
 - showing OG content - mostly implemented
 - invalid API key crashes the app, so need to make an error message (also resource exhausted error)
+- fix pdf viewing, and perhaps even locally upload the file
 - LLM fallback - i will not be going forward with this as i'd like a close book LLM
 
 disclaimer:

@@ -1,5 +1,8 @@
 const API_BASE = "http://127.0.0.1:8000";
 
+// Configure PDFJS Worker path
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
 let sessionId = localStorage.getItem("session_id") || null;
 
 const apiKeyInput = document.getElementById("apiKey");
@@ -8,7 +11,10 @@ const pdfFiles = document.getElementById("pdfFiles");
 const fileList = document.getElementById("fileList");
 const uploadBtn = document.getElementById("uploadBtn");
 const statusCard = document.getElementById("statusCard");
+const setupCard = document.getElementById("setupCard");
+const toggleSetupBtn = document.getElementById("toggleSetupBtn");
 
+const workspaceContainer = document.getElementById("workspaceContainer");
 const chatSection = document.getElementById("chatSection");
 const chatMessages = document.getElementById("chatMessages");
 
@@ -17,6 +23,14 @@ const sendBtn = document.getElementById("sendBtn");
 
 const newSessionBtn = document.getElementById("newSessionBtn");
 const downloadChatBtn = document.getElementById("downloadChatBtn");
+
+// New split panels components elements mapping nodes hooks
+const pdfPanel = document.getElementById("pdfPanel");
+const panelResizer = document.getElementById("panelResizer");
+const pdfSelector = document.getElementById("pdfSelector");
+const togglePdfBtn = document.getElementById("togglePdfBtn");
+const pdfViewer = document.getElementById("pdfViewer");
+const quoteSelectionBtn = document.getElementById("quoteSelectionBtn");
 
 const modal = document.getElementById("chunkModal");
 const modalTitle = document.getElementById("modalTitle");
@@ -38,6 +52,8 @@ window.onclick = (e) => {
 
 let selectedFiles = [];
 let chatHistory = [];
+let activeResizing = false;
+let currentSelectedText = "";
 
 /* =========================
 SESSION RESTORE
@@ -56,7 +72,7 @@ async function checkActiveSession() {
     }
 
     statusCard.classList.remove("hidden");
-    chatSection.classList.remove("hidden");
+    workspaceContainer.classList.remove("hidden");
     newSessionBtn.classList.remove("hidden");
     downloadChatBtn.classList.remove("hidden");
 
@@ -81,15 +97,69 @@ function clearSessionState() {
 
   chatMessages.innerHTML = "";
   fileList.innerHTML = "";
+  pdfSelector.innerHTML = '<option value="" disabled selected>Select an indexed document...</option>';
+  pdfViewer.innerHTML = '<div class="pdf-placeholder">Select an indexed document to view its content</div>';
 
   statusCard.classList.add("hidden");
-  chatSection.classList.add("hidden");
+  workspaceContainer.classList.add("hidden");
   newSessionBtn.classList.add("hidden");
   downloadChatBtn.classList.add("hidden");
 
   pdfFiles.value = "";
   statusCard.textContent = "Ready";
 }
+
+if (toggleSetupBtn && setupCard) {
+  toggleSetupBtn.addEventListener("click", () => {
+    const isMinimized = setupCard.classList.toggle("minimized");
+    
+    // Update button contents dynamically based on status state window tracking
+    if (isMinimized) {
+      toggleSetupBtn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> Show Configuration`;
+    } else {
+      toggleSetupBtn.innerHTML = `<i class="fa-solid fa-chevron-up"></i> Hide Configuration`;
+    }
+  });
+}
+
+/* =========================
+SPLIT PANE RESIZER & COLLAPSIBLE SYSTEM
+========================= */
+panelResizer.addEventListener("mousedown", (e) => {
+  activeResizing = true;
+  document.body.style.cursor = "col-resize";
+  document.body.style.userSelect = "none";
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (!activeResizing) return;
+  
+  const containerRect = workspaceContainer.getBoundingClientRect();
+  const requestedViewerWidth = containerRect.right - e.clientX;
+  
+  // Rule Check: Left view can only increase width up to its safety boundaries rule constraints
+  const prospectiveChatWidth = e.clientX - containerRect.left;
+  
+  if (prospectiveChatWidth >= 450 && requestedViewerWidth >= 0) {
+    pdfPanel.style.width = `${requestedViewerWidth}px`;
+    if (requestedViewerWidth > 10) {
+      pdfPanel.classList.remove("collapsed");
+    }
+  }
+});
+
+document.addEventListener("mouseup", () => {
+  if (activeResizing) {
+    activeResizing = false;
+    document.body.style.cursor = "default";
+    document.body.style.userSelect = "auto";
+  }
+});
+
+// Structural collapsibility handler toggle hook engine 
+togglePdfBtn.addEventListener("click", () => {
+  pdfPanel.classList.toggle("collapsed");
+});
 
 /* =========================
 DRAG & DROP
@@ -134,12 +204,12 @@ function addUniqueFiles(files) {
 }
 
 /* =========================
-FILE LIST
+FILE LIST & SELECTOR
 ========================= */
 function renderFileList() {
   fileList.innerHTML = "";
 
-  selectedFiles.forEach((file, index) => {
+  selectedFiles.forEach((file) => {
     const div = document.createElement("div");
     div.className = "file-item";
 
@@ -165,6 +235,110 @@ function renderFileList() {
     fileList.appendChild(div);
   });
 }
+
+function updatePdfSelector() {
+  pdfSelector.innerHTML = '<option value="" disabled selected>Select an indexed document...</option>';
+  selectedFiles.forEach((file, idx) => {
+    const opt = document.createElement("option");
+    opt.value = idx;
+    opt.textContent = file.name;
+    pdfSelector.appendChild(opt);
+  });
+}
+
+/* =========================
+PDF RENDERING CORE ENGINE (PDF.js Text Layer Integration)
+========================= */
+pdfSelector.addEventListener("change", async (e) => {
+  const fileIdx = Number(e.target.value);
+  const file = selectedFiles[fileIdx];
+  if (!file) return;
+
+  pdfViewer.innerHTML = '<div class="pdf-placeholder"><i class="fa-solid fa-spinner fa-spin"></i> Rendering Text Layers...</div>';
+
+  try {
+    const reader = new FileReader();
+    reader.onload = async function () {
+      const typedarray = new Uint8Array(this.result);
+      const pdf = await pdfjsLib.getDocument(typedarray).promise;
+      
+      pdfViewer.innerHTML = ""; // Flush the placeholder cleanly
+
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        
+        // Setup wrapper configuration system elements container 
+        const pageContainer = document.createElement("div");
+        pageContainer.className = "pdf-page-container";
+        
+        const textLayerDiv = document.createElement("div");
+        textLayerDiv.className = "pdf-text-layer";
+        
+        pageContainer.appendChild(textLayerDiv);
+        pdfViewer.appendChild(pageContainer);
+
+        // Fetch standard viewport scaling configurations dynamically mapped down inside viewer width bounding box 
+        const viewport = page.getViewport({ scale: 1.5 });
+        pageContainer.style.width = `${viewport.width}px`;
+        pageContainer.style.height = `${viewport.height}px`;
+
+        const textContent = await page.getTextContent();
+        
+        // Render raw HTML-selectable content layer nodes array stream 
+        pdfjsLib.renderTextLayer({
+          textContentSource: textContent,
+          container: textLayerDiv,
+          viewport: viewport,
+          textDivs: []
+        });
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  } catch (err) {
+    console.error("Failed to render PDF text layer:", err);
+    pdfViewer.innerHTML = '<div class="pdf-placeholder" style="color:#ef4444;">Error opening view context layers.</div>';
+  }
+});
+
+/* =========================
+HIGHLIGHT TEXT SELECTION SEED ENGINE (ChatGPT-style Action)
+========================= */
+document.addEventListener("selectionchange", () => {
+  const selection = window.getSelection();
+  const selectedText = selection.toString().trim();
+
+  // Guardrail layout boundaries checking context to confirm selection was pulled from the PDF view panel container bounds safely
+  if (selectedText && pdfViewer.contains(selection.anchorNode)) {
+    currentSelectedText = selectedText;
+    
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    
+    quoteSelectionBtn.style.left = `${rect.left + (rect.width / 2)}px`;
+    quoteSelectionBtn.style.top = `${rect.top + window.scrollY}px`;
+    quoteSelectionBtn.classList.remove("hidden");
+  } else {
+    // Hide button asynchronously if mouse leaves bounds or selection resets
+    setTimeout(() => {
+      if (!window.getSelection().toString().trim()) {
+        quoteSelectionBtn.classList.add("hidden");
+      }
+    }, 100);
+  }
+});
+
+quoteSelectionBtn.addEventListener("mousedown", (e) => {
+  e.preventDefault(); // Prevents selection click loss sequence mapping loops
+  if (!currentSelectedText) return;
+
+  const quoteString = `"${currentSelectedText}"\n`;
+  userInput.value = userInput.value ? `${userInput.value} ${quoteString}` : quoteString;
+  userInput.focus();
+  
+  // Reset selection states context values 
+  window.getSelection().removeAllRanges();
+  quoteSelectionBtn.classList.add("hidden");
+});
 
 /* =========================
 UPLOAD
@@ -218,10 +392,14 @@ async function uploadDocuments() {
     downloadChatBtn.classList.remove("hidden");
 
     statusCard.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${data.documents} PDFs • ${data.chunks} chunks`;
-
-    chatSection.classList.remove("hidden");
+    
+    // Automatically roll up the panel once files finish indexing 
+    setupCard.classList.add("minimized");
+    toggleSetupBtn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> Show Configuration`;
+    workspaceContainer.classList.remove("hidden");
     chatMessages.innerHTML = "";
 
+    updatePdfSelector();
     addMessage("Documents indexed. Ask anything!", "assistant");
   } catch (err) {
     statusCard.textContent = "Indexing failed";
@@ -351,6 +529,7 @@ function addMessage(text, role, sources = []) {
   actions.classList.add("message-actions");
 
   const copyBtn = document.createElement("button");
+  copyBtn.className = "copy-btn";
   const icon = document.createElement("i");
   icon.className = "fa-regular fa-copy";
 

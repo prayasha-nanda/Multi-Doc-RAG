@@ -1,26 +1,21 @@
 <!doctype html>
-
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
     <title>Multi-Document RAG</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
     />
-
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -29,14 +24,17 @@
     <div class="app">
       <header class="hero">
         <h1>Multi-Doc RAG</h1>
-
-        <p>Chat with your PDFs using Gemini 2.5 Flash + FAISS</p>
+        <div class="hero-subline">
+          <p>Chat with your PDFs using Gemini 2.5 Flash + FAISS</p>
+          <button id="toggleSetupBtn" class="toggle-setup-btn" title="Toggle Config Panel">
+            <i class="fa-solid fa-chevron-up"></i> Hide Configuration
+          </button>
+        </div>
       </header>
 
-      <section class="setup-card">
+      <section id="setupCard" class="setup-card">
         <div class="input-group">
           <label>Gemini API Key</label>
-
           <input
             type="password"
             id="apiKey"
@@ -46,18 +44,14 @@
 
         <div id="dropZone" class="drop-zone">
           <input type="file" id="pdfFiles" accept=".pdf" multiple hidden />
-
           <div class="drop-content">
             <i class="fa-solid fa-file-lines drop-icon"></i>
-
             <h3>Drop PDFs Here</h3>
-
             <p>or click to browse files</p>
           </div>
         </div>
 
         <div id="fileList" class="file-list"></div>
-
         <button id="uploadBtn">Index Documents</button>
       </section>
 
@@ -72,44 +66,67 @@
         </button>
       </div>
 
-      <section id="chatSection" class="chat-section hidden">
-        <div id="chatMessages" class="chat-messages">
-          <div class="empty-state">
-            <h3>Ask anything about your documents</h3>
-
-            <p>Try:</p>
-
-            <ul>
-              <li>Summarize the document</li>
-              <li>What are the key findings?</li>
-              <li>Explain chapter 3</li>
-            </ul>
+      <div id="workspaceContainer" class="workspace-container hidden">
+        
+        <section id="chatSection" class="chat-section">
+          <div id="chatMessages" class="chat-messages">
+            <div class="empty-state">
+              <h3>Ask anything about your documents</h3>
+              <p>Try:</p>
+              <ul>
+                <li>Summarize the document</li>
+                <li>What are the key findings?</li>
+                <li>Explain chapter 3</li>
+              </ul>
+            </div>
           </div>
+
+          <div class="chat-input">
+            <input
+              type="text"
+              id="userInput"
+              placeholder="Ask about your documents..."
+            />
+            <button id="sendBtn">Send</button>
+          </div>
+        </section>
+
+        <div id="panelResizer" class="panel-resizer">
+          <div class="resizer-handle"></div>
         </div>
 
-        <div class="chat-input">
-          <input
-            type="text"
-            id="userInput"
-            placeholder="Ask about your documents..."
-          />
-
-          <button id="sendBtn">Send</button>
-        </div>
-      </section>
+        <section id="pdfPanel" class="pdf-panel">
+          <div class="pdf-panel-header">
+            <div class="selector-wrapper">
+              <i class="fa-solid fa-book-open"></i>
+              <select id="pdfSelector">
+                <option value="" disabled selected>Select an indexed document...</option>
+              </select>
+            </div>
+            <button id="togglePdfBtn" title="Collapse Panel">
+              <i class="fa-solid fa-bars"></i>
+            </button>
+          </div>
+          
+          <div id="pdfViewer" class="pdf-viewer-body">
+            <div class="pdf-placeholder">Select an indexed document to view its content</div>
+          </div>
+        </section>
+      </div>
     </div>
 
-    <!-- <script src="chat.js"></script> -->
+    <button id="quoteSelectionBtn" class="floating-quote-btn hidden">
+      <i class="fa-solid fa-quote-left"></i> Add to prompt
+    </button>
 
     <div id="chunkModal" class="modal hidden">
       <div class="modal-content">
         <span id="closeModal" class="close">&times;</span>
-
         <h3 id="modalTitle"></h3>
-
         <pre id="modalBody"></pre>
       </div>
     </div>
+    
     <script src="chat.js"></script>
   </body>
 </html>
