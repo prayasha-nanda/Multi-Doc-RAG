@@ -550,6 +550,11 @@ pre {
   cursor: pointer;
 }
 
+#pdfSelector option {
+  background: #131a2b;
+  color: white;
+}
+
 #togglePdfBtn {
   background: transparent;
   border: none;
