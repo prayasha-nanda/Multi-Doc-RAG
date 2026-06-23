@@ -46,10 +46,13 @@ app.add_middleware(
 # os.makedirs("uploads", exist_ok=True) #currently not in use
 os.makedirs("indexes", exist_ok=True)
 
+def get_session_path(session_id):
+    return os.path.join("indexes", session_id)
 
 class ChatRequest(BaseModel):
     session_id: str
     message: str
+    selected_context: str | None = None
 
 
 @app.get("/")
@@ -69,14 +72,27 @@ async def upload_documents(
     session_id = create_session_id()
     save_api_key_to_session(session_id, api_key)
 
+    session_path = get_session_path(session_id)
+
+    pdf_dir = os.path.join(session_path, "pdfs")
+    os.makedirs(pdf_dir, exist_ok=True)
+
     all_documents = []
     total_files = 0
 
     for uploaded_file in files:
         file_bytes = await uploaded_file.read()
-        uploaded_file.file.seek(0)
 
         validate_file_size(len(file_bytes))
+
+        # SAVE PDF LOCALLY
+        file_path = os.path.join(pdf_dir, uploaded_file.filename)
+
+        with open(file_path, "wb") as f:
+            f.write(file_bytes)
+
+        # reset pointer
+        uploaded_file.file.seek(0)
 
         docs = extract_pdf_text(
             file_bytes=file_bytes,
@@ -122,7 +138,8 @@ def chat(request: ChatRequest):
 
     return chat_service.chat(
         session_id=request.session_id,
-        query=request.message
+        query=request.message,
+        selected_context=request.selected_context
     )
 
 
@@ -131,16 +148,19 @@ def session_info(session_id: str):
     session_path = get_session_path(session_id)
 
     if not os.path.exists(session_path):
-        raise HTTPException(
-            status_code=404,
-            detail="Session not found."
-        )
+        raise HTTPException(status_code=404, detail="Session not found.")
+
+    pdf_dir = os.path.join(session_path, "pdfs")
+
+    pdfs = []
+    if os.path.exists(pdf_dir):
+        pdfs = os.listdir(pdf_dir)
 
     return {
         "session_id": session_id,
-        "exists": True
+        "exists": True,
+        "pdfs": pdfs
     }
-
 
 @app.delete("/session/{session_id}")
 def delete_session(session_id: str):

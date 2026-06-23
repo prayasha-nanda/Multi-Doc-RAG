@@ -594,18 +594,22 @@ pre {
 
 /* Render text layers */
 .pdf-text-layer {
-  position: absolute;
-  left: 0; top: 0; right: 0; bottom: 0;
-  opacity: 0.35;
-  line-height: 1.0;
+    position: absolute;
+    inset: 0;
+    opacity: 1; /* not 0 */
 }
 
 .pdf-text-layer span {
-  color: black;
-  position: absolute;
-  white-space: pre;
-  cursor: text;
-  transform-origin: 0% 0%;
+    position: absolute;
+    white-space: pre;
+    cursor: text;
+    transform-origin: 0 0;
+
+    color: rgba(0,0,0,0); /* transparent text */
+}
+
+.pdf-text-layer ::selection {
+    background: rgba(59,130,246,0.4);
 }
 
 /* FLOATING CITATIONS HIGHLIGHTS ACTION CONTROLLER */
@@ -676,4 +680,83 @@ pre {
   padding-bottom: 0 !important;
   margin-bottom: 0 !important;
   border: none !important;
+}
+
+.context-bar {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.context-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: rgba(59,130,246,0.12);
+  border: 1px solid rgba(59,130,246,0.25);
+
+  padding: 10px 12px;
+  border-radius: 12px;
+
+  font-size: 0.9rem;
+}
+
+.context-chip button {
+  margin-left: auto;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+
+.input-wrapper {
+  margin-top: 20px;
+
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.chat-input {
+  margin-top: 0;
+  padding: 12px;
+}
+
+.context-bar {
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.user-context-chip {
+  color: #60a5fa;
+  border-color: rgba(96,165,250,0.35);
+  background: rgba(96,165,250,0.12);
+}
+
+.user-context-chip button {
+  margin-left: 8px;
+
+  background: transparent;
+  border: none;
+
+  color: inherit;
+  cursor: pointer;
+}
+
+.quoted-context {
+  margin-bottom: 10px;
+
+  font-size: 0.85rem;
+
+  padding: 8px 12px;
+
+  border-radius: 12px;
+
+  background: rgba(255,255,255,0.15);
+
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }

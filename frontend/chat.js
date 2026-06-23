@@ -1,7 +1,8 @@
 const API_BASE = "http://127.0.0.1:8000";
 
 // Configure PDFJS Worker path
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc =
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js";
 
 let sessionId = localStorage.getItem("session_id") || null;
 
@@ -20,6 +21,7 @@ const chatMessages = document.getElementById("chatMessages");
 
 const userInput = document.getElementById("userInput");
 const sendBtn = document.getElementById("sendBtn");
+const contextBar = document.getElementById("contextBar");
 
 const newSessionBtn = document.getElementById("newSessionBtn");
 const downloadChatBtn = document.getElementById("downloadChatBtn");
@@ -54,10 +56,40 @@ let selectedFiles = [];
 let chatHistory = [];
 let activeResizing = false;
 let currentSelectedText = "";
+let attachedContext = "";
 
 /* =========================
 SESSION RESTORE
 ========================= */
+
+async function restoreSessionPdf(sessionId) {
+  const res = await fetch(`${API_BASE}/session/${sessionId}`);
+  const data = await res.json();
+
+  pdfSelector.innerHTML =
+    '<option value="" disabled selected>Select an indexed document...</option>';
+
+  selectedFiles = []; // reset
+
+  for (const fileName of data.pdfs) {
+    // add to dropdown
+    const opt = document.createElement("option");
+    opt.value = fileName;
+    opt.textContent = fileName;
+    pdfSelector.appendChild(opt);
+
+    // fetch actual PDF bytes
+    const pdfRes = await fetch(
+      `${API_BASE}/session/${sessionId}/pdf/${fileName}`
+    );
+
+    const blob = await pdfRes.blob();
+    const file = new File([blob], fileName, { type: "application/pdf" });
+
+    selectedFiles.push(file);
+  }
+}
+
 async function checkActiveSession() {
   if (!sessionId) return;
 
@@ -70,6 +102,8 @@ async function checkActiveSession() {
       clearSessionState();
       return;
     }
+
+    restoreSessionPdf(sessionId);
 
     statusCard.classList.remove("hidden");
     workspaceContainer.classList.remove("hidden");
@@ -97,8 +131,10 @@ function clearSessionState() {
 
   chatMessages.innerHTML = "";
   fileList.innerHTML = "";
-  pdfSelector.innerHTML = '<option value="" disabled selected>Select an indexed document...</option>';
-  pdfViewer.innerHTML = '<div class="pdf-placeholder">Select an indexed document to view its content</div>';
+  pdfSelector.innerHTML =
+    '<option value="" disabled selected>Select an indexed document...</option>';
+  pdfViewer.innerHTML =
+    '<div class="pdf-placeholder">Select an indexed document to view its content</div>';
 
   statusCard.classList.add("hidden");
   workspaceContainer.classList.add("hidden");
@@ -112,7 +148,7 @@ function clearSessionState() {
 if (toggleSetupBtn && setupCard) {
   toggleSetupBtn.addEventListener("click", () => {
     const isMinimized = setupCard.classList.toggle("minimized");
-    
+
     // Update button contents dynamically based on status state window tracking
     if (isMinimized) {
       toggleSetupBtn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> Show Configuration`;
@@ -133,13 +169,13 @@ panelResizer.addEventListener("mousedown", (e) => {
 
 document.addEventListener("mousemove", (e) => {
   if (!activeResizing) return;
-  
+
   const containerRect = workspaceContainer.getBoundingClientRect();
   const requestedViewerWidth = containerRect.right - e.clientX;
-  
+
   // Rule Check: Left view can only increase width up to its safety boundaries rule constraints
   const prospectiveChatWidth = e.clientX - containerRect.left;
-  
+
   if (prospectiveChatWidth >= 450 && requestedViewerWidth >= 0) {
     pdfPanel.style.width = `${requestedViewerWidth}px`;
     if (requestedViewerWidth > 10) {
@@ -156,7 +192,7 @@ document.addEventListener("mouseup", () => {
   }
 });
 
-// Structural collapsibility handler toggle hook engine 
+// Structural collapsibility handler toggle hook engine
 togglePdfBtn.addEventListener("click", () => {
   pdfPanel.classList.toggle("collapsed");
 });
@@ -236,11 +272,36 @@ function renderFileList() {
   });
 }
 
+function renderContextBar() {
+  if (!attachedContext) {
+    contextBar.classList.add("hidden");
+    contextBar.innerHTML = "";
+    return;
+  }
+
+  contextBar.classList.remove("hidden");
+
+  contextBar.innerHTML = `
+    <span class="source-chip user-context-chip">
+      <i class="fa-solid fa-quote-right"></i>
+      ${attachedContext.slice(0, 150)}
+      ${attachedContext.length > 150 ? "..." : ""}
+      <button id="removeContextBtn" style="color: white;">×</button>
+    </span>
+  `;
+
+  document.getElementById("removeContextBtn").onclick = () => {
+    attachedContext = "";
+    renderContextBar();
+  };
+}
+
 function updatePdfSelector() {
-  pdfSelector.innerHTML = '<option value="" disabled selected>Select an indexed document...</option>';
+  pdfSelector.innerHTML =
+    '<option value="" disabled selected>Select an indexed document...</option>';
   selectedFiles.forEach((file, idx) => {
     const opt = document.createElement("option");
-    opt.value = idx;
+    opt.value = file.name;
     opt.textContent = file.name;
     pdfSelector.appendChild(opt);
   });
@@ -250,53 +311,76 @@ function updatePdfSelector() {
 PDF RENDERING CORE ENGINE (PDF.js Text Layer Integration)
 ========================= */
 pdfSelector.addEventListener("change", async (e) => {
-  const fileIdx = Number(e.target.value);
-  const file = selectedFiles[fileIdx];
+  const fileName = e.target.value;
+
+  const file = selectedFiles.find((f) => f.name === fileName);
   if (!file) return;
 
-  pdfViewer.innerHTML = '<div class="pdf-placeholder"><i class="fa-solid fa-spinner fa-spin"></i> Rendering Text Layers...</div>';
+  pdfViewer.innerHTML =
+    '<div class="pdf-placeholder"><i class="fa-solid fa-spinner fa-spin"></i> Rendering Text Layers...</div>';
 
   try {
     const reader = new FileReader();
     reader.onload = async function () {
       const typedarray = new Uint8Array(this.result);
       const pdf = await pdfjsLib.getDocument(typedarray).promise;
-      
+
       pdfViewer.innerHTML = ""; // Flush the placeholder cleanly
 
       for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
         const page = await pdf.getPage(pageNum);
-        
-        // Setup wrapper configuration system elements container 
+
+        // Setup wrapper configuration system elements container
+        const viewport = page.getViewport({ scale: 1.5 });
+
         const pageContainer = document.createElement("div");
         pageContainer.className = "pdf-page-container";
-        
-        const textLayerDiv = document.createElement("div");
-        textLayerDiv.className = "pdf-text-layer";
-        
-        pageContainer.appendChild(textLayerDiv);
-        pdfViewer.appendChild(pageContainer);
 
-        // Fetch standard viewport scaling configurations dynamically mapped down inside viewer width bounding box 
-        const viewport = page.getViewport({ scale: 1.5 });
         pageContainer.style.width = `${viewport.width}px`;
         pageContainer.style.height = `${viewport.height}px`;
+        pageContainer.style.position = "relative";
 
+        // Canvas
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+
+        canvas.style.width = `${viewport.width}px`;
+        canvas.style.height = `${viewport.height}px`;
+
+        // Text layer
+        const textLayerDiv = document.createElement("div");
+        textLayerDiv.className = "pdf-text-layer";
+
+        pageContainer.appendChild(canvas);
+        pageContainer.appendChild(textLayerDiv);
+
+        pdfViewer.appendChild(pageContainer);
+
+        // Render page
+        await page.render({
+          canvasContext: ctx,
+          viewport,
+        }).promise;
+
+        // Render selectable text layer
         const textContent = await page.getTextContent();
-        
-        // Render raw HTML-selectable content layer nodes array stream 
-        pdfjsLib.renderTextLayer({
+
+        await pdfjsLib.renderTextLayer({
           textContentSource: textContent,
           container: textLayerDiv,
-          viewport: viewport,
-          textDivs: []
+          viewport,
+          textDivs: [],
         });
       }
     };
     reader.readAsArrayBuffer(file);
   } catch (err) {
     console.error("Failed to render PDF text layer:", err);
-    pdfViewer.innerHTML = '<div class="pdf-placeholder" style="color:#ef4444;">Error opening view context layers.</div>';
+    pdfViewer.innerHTML =
+      '<div class="pdf-placeholder" style="color:#ef4444;">Error opening view context layers.</div>';
   }
 });
 
@@ -310,11 +394,11 @@ document.addEventListener("selectionchange", () => {
   // Guardrail layout boundaries checking context to confirm selection was pulled from the PDF view panel container bounds safely
   if (selectedText && pdfViewer.contains(selection.anchorNode)) {
     currentSelectedText = selectedText;
-    
+
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
-    
-    quoteSelectionBtn.style.left = `${rect.left + (rect.width / 2)}px`;
+
+    quoteSelectionBtn.style.left = `${rect.left + rect.width / 2}px`;
     quoteSelectionBtn.style.top = `${rect.top}px`;
     quoteSelectionBtn.classList.remove("hidden");
   } else {
@@ -331,11 +415,15 @@ quoteSelectionBtn.addEventListener("mousedown", (e) => {
   e.preventDefault(); // Prevents selection click loss sequence mapping loops
   if (!currentSelectedText) return;
 
-  const quoteString = `"${currentSelectedText}"\n`;
-  userInput.value = userInput.value ? `${userInput.value} ${quoteString}` : quoteString;
+  // const quoteString = `"${currentSelectedText}"\n`;
+  attachedContext = currentSelectedText;
+  renderContextBar();
+  // userInput.value = userInput.value
+  //   ? `${userInput.value} ${quoteString}`
+  //   : quoteString;
   userInput.focus();
-  
-  // Reset selection states context values 
+
+  // Reset selection states context values
   window.getSelection().removeAllRanges();
   quoteSelectionBtn.classList.add("hidden");
 });
@@ -392,8 +480,8 @@ async function uploadDocuments() {
     downloadChatBtn.classList.remove("hidden");
 
     statusCard.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${data.documents} PDFs • ${data.chunks} chunks`;
-    
-    // Automatically roll up the panel once files finish indexing 
+
+    // Automatically roll up the panel once files finish indexing
     setupCard.classList.add("minimized");
     toggleSetupBtn.innerHTML = `<i class="fa-solid fa-chevron-down"></i> Show Configuration`;
     workspaceContainer.classList.remove("hidden");
@@ -475,7 +563,11 @@ async function sendMessage() {
   const empty = chatMessages.querySelector(".empty-state");
   if (empty) empty.remove();
 
-  addMessage(message, "user");
+  const contextToSend = attachedContext;
+
+  addMessage(message, "user", [], contextToSend);
+  attachedContext = "";
+  renderContextBar();
   userInput.value = "";
 
   const loading = addMessage("Thinking...", "assistant");
@@ -488,6 +580,7 @@ async function sendMessage() {
       body: JSON.stringify({
         session_id: sessionId,
         message,
+        selected_context: contextToSend,
       }),
     });
 
@@ -511,7 +604,7 @@ async function sendMessage() {
 /* =========================
 MESSAGE RENDER
 ========================= */
-function addMessage(text, role, sources = []) {
+function addMessage(text, role, sources = [], selectedContext = null) {
   const div = document.createElement("div");
   div.classList.add("message", role);
 
@@ -546,6 +639,19 @@ function addMessage(text, role, sources = []) {
   };
 
   actions.appendChild(copyBtn);
+  if (role === "user" && selectedContext) {
+    const chip = document.createElement("div");
+
+    chip.className = "quoted-context";
+
+    chip.innerHTML = `
+    <i class="fa-solid fa-quote-right"></i>
+    ${selectedContext.slice(0, 150)}
+    ${selectedContext.length > 150 ? "..." : ""}
+  `;
+
+    div.appendChild(chip);
+  }
   div.appendChild(content);
   div.appendChild(actions);
 

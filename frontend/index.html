@@ -13,6 +13,10 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf_viewer.min.css"
+    />
+    <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
@@ -26,7 +30,11 @@
         <h1>Multi-Doc RAG</h1>
         <div class="hero-subline">
           <p>Chat with your PDFs using Gemini 2.5 Flash + FAISS</p>
-          <button id="toggleSetupBtn" class="toggle-setup-btn" title="Toggle Config Panel">
+          <button
+            id="toggleSetupBtn"
+            class="toggle-setup-btn"
+            title="Toggle Config Panel"
+          >
             <i class="fa-solid fa-chevron-up"></i> Hide Configuration
           </button>
         </div>
@@ -67,7 +75,6 @@
       </div>
 
       <div id="workspaceContainer" class="workspace-container hidden">
-        
         <section id="chatSection" class="chat-section">
           <div id="chatMessages" class="chat-messages">
             <div class="empty-state">
@@ -81,13 +88,17 @@
             </div>
           </div>
 
-          <div class="chat-input">
-            <input
-              type="text"
-              id="userInput"
-              placeholder="Ask about your documents..."
-            />
-            <button id="sendBtn">Send</button>
+          <div class="input-wrapper">
+            <div id="contextBar" class="context-bar hidden"></div>
+
+            <div class="chat-input">
+              <input
+                type="text"
+                id="userInput"
+                placeholder="Ask about your documents..."
+              />
+              <button id="sendBtn">Send</button>
+            </div>
           </div>
         </section>
 
@@ -100,16 +111,20 @@
             <div class="selector-wrapper">
               <i class="fa-solid fa-book-open"></i>
               <select id="pdfSelector">
-                <option value="" disabled selected>Select an indexed document...</option>
+                <option value="" disabled selected>
+                  Select an indexed document...
+                </option>
               </select>
             </div>
             <button id="togglePdfBtn" title="Collapse Panel">
               <i class="fa-solid fa-bars"></i>
             </button>
           </div>
-          
+
           <div id="pdfViewer" class="pdf-viewer-body">
-            <div class="pdf-placeholder">Select an indexed document to view its content</div>
+            <div class="pdf-placeholder">
+              Select an indexed document to view its content
+            </div>
           </div>
         </section>
       </div>
@@ -126,7 +141,7 @@
         <pre id="modalBody"></pre>
       </div>
     </div>
-    
+
     <script src="chat.js"></script>
   </body>
 </html>
