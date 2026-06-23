@@ -42,16 +42,18 @@ basic-rag/
 ---
 This is my backlog:
 - tweaking prompts / changing number of chunks sent / temperature etc. - all scenario-based
-- the UI, especially the copy button
+- add a slider to control model temperature
+- the UI eeds to have a model control tab, the congifuration details have to be folded and unfolded automatically a bit more, copy button & context UI fixed
 - fix the show config in the active session
 - invalid API key crashes the app, so need to make an error message (also resource exhausted error)
-- fix pdf viewing - fixed, and perhaps even locally upload the file - not required
-- chatbox becoming a bit larger for more than one line?
-- sending context with the floating "Add to prompt" button
+- locally download the file - working on it
+- chatbox becoming a bit larger for more than one line? - i like it in one line. not required. 2k characters query limit is also ok.
+- sending context with the floating "Add to prompt" button - done!!
 
 disclaimer:
-0.80 can have tiny bleeds.
-temperature 0.0
+0.80 can have tiny bleeds. i decided on this threshold after testing multiple prompts.
+
+temperature 0.7 currently
 
 ---
 

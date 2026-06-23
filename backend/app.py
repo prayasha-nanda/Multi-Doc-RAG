@@ -3,6 +3,7 @@ import shutil
 
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from pydantic import BaseModel
 
@@ -161,6 +162,16 @@ def session_info(session_id: str):
         "exists": True,
         "pdfs": pdfs
     }
+
+@app.get("/session/{session_id}/pdf/{filename}")
+def get_pdf(session_id: str, filename: str):
+    session_path = get_session_path(session_id)
+    pdf_path = os.path.join(session_path, "pdfs", filename)
+
+    if not os.path.exists(pdf_path):
+        raise HTTPException(status_code=404, detail="PDF not found")
+
+    return FileResponse(pdf_path, media_type="application/pdf", filename=filename)
 
 @app.delete("/session/{session_id}")
 def delete_session(session_id: str):
