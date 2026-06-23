@@ -509,7 +509,11 @@ function downloadChat() {
   let out = "# Chat Export\n\n";
 
   chatHistory.forEach((m) => {
+    if (m.selectedContext) {
+      out += `### SELECTED CONTEXT:\n${m.selectedContext}\n\n`;
+    }
     out += `## ${m.role.toUpperCase()}\n${m.text}\n\n`;
+
 
     if (m.sources?.length) {
       out += "Sources:\n";
@@ -678,7 +682,7 @@ function addMessage(text, role, sources = [], selectedContext = null) {
   }
 
   if (text && text !== "Thinking...") {
-    chatHistory.push({ role, text, sources });
+    chatHistory.push({ role, text, sources, selectedContext });
   }
 
   chatMessages.appendChild(div);

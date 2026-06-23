@@ -50,7 +50,7 @@ class RAGChatService:
             k=k
         )
 
-        SIMILARITY_THRESHOLD = 0.80
+        SIMILARITY_THRESHOLD = 0.90
         filtered_docs = []
 
         # Euclidean Distance (L₂): Computes the straight-line distance between vectors.
@@ -134,9 +134,22 @@ class RAGChatService:
     def chat(self, session_id, query, selected_context=None):
         total_start = time.time()
         retrieval_start = time.time()
+        retrieval_query = query
+
+        if selected_context:
+            retrieval_query = f"""
+User question:
+{query}
+
+The question refers to this exact passage:
+{selected_context}
+
+Find context that explains or relates to the passage.
+"""
+
         docs = self.retrieve(
             session_id=session_id,
-            query=query
+            query=retrieval_query
         )
         retrieval_time = time.time() - retrieval_start
 
@@ -147,6 +160,9 @@ class RAGChatService:
         print("USER QUESTION:", query)
         print()
         print("USER SELECTED CONTEXT:", selected_context)
+        print()
+        print("RETRIEVAL QUERY:")
+        print(retrieval_query)
         print()
         for i, doc in enumerate(docs, start=1):
             print(f"\n[Retrieved Chunk {i}]")
