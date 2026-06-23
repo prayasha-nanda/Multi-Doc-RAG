@@ -57,6 +57,22 @@ temperature 0.7 currently
 
 ---
 
+## Features
+
+- Multi-document PDF question answering
+- Gemini Embeddings + FAISS vector search
+- Similarity-threshold filtering to reduce irrelevant context
+- Source chunk inspection with page references
+- Interactive PDF viewer built with PDF.js
+- Text selection and "Add to Prompt" workflow
+- Persistent local sessions
+- Session restoration after page refresh
+- Downloadable chat history
+- Local PDF storage for document reloading
+- Query validation and input guards
+
+---
+
 ## Architecture
 
 ```text
@@ -246,15 +262,46 @@ Each upload creates a unique session.
 
 Sessions store:
 
-* Vector index
-* Metadata
-* API key reference
+* FAISS vector index
+* Chunk metadata
+* Uploaded PDF files
+
+This allows users to restore previous sessions, reopen indexed documents, and continue querying without re-uploading files.
 
 Users can:
 
 * Continue previous sessions
 * Start a new session
 * Delete existing sessions (by themselves, it will be stored locally in a folder `backend/indexes`)
+
+---
+
+## PDF Viewer
+
+Indexed PDFs can be reopened directly inside the application using PDF.js.
+
+Features include:
+
+* Selectable text
+* Multi-page rendering
+* Source verification
+* Context extraction from highlighted passages
+
+Users can highlight text inside a document and attach it directly to a question using the **Add to Prompt** action.
+
+---
+
+## Context-Aware Questioning
+
+In addition to standard document search, users can attach a selected passage from a PDF to their question.
+
+The selected passage is:
+
+1. Added to the retrieval query
+2. Prioritized during answer generation
+3. Passed separately to the LLM as user-selected context
+
+This helps improve retrieval quality for questions that reference specific parts of a document.
 
 ---
 

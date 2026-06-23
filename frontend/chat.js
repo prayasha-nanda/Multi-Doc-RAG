@@ -80,7 +80,7 @@ async function restoreSessionPdf(sessionId) {
 
     // fetch actual PDF bytes
     const pdfRes = await fetch(
-      `${API_BASE}/session/${sessionId}/pdf/${fileName}`
+      `${API_BASE}/session/${sessionId}/pdf/${fileName}`,
     );
 
     const blob = await pdfRes.blob();
@@ -103,7 +103,7 @@ async function checkActiveSession() {
       return;
     }
 
-    restoreSessionPdf(sessionId);
+    await restoreSessionPdf(sessionId);
 
     statusCard.classList.remove("hidden");
     workspaceContainer.classList.remove("hidden");
@@ -445,6 +445,8 @@ newSessionBtn.addEventListener("click", async () => {
   }
 
   clearSessionState();
+  setupCard.classList.remove("minimized");
+  toggleSetupBtn.innerHTML = `<i class="fa-solid fa-chevron-up"></i> Hide Configuration`;
   addMessage("New session started.", "assistant");
 });
 
@@ -513,7 +515,6 @@ function downloadChat() {
       out += `### SELECTED CONTEXT:\n${m.selectedContext}\n\n`;
     }
     out += `## ${m.role.toUpperCase()}\n${m.text}\n\n`;
-
 
     if (m.sources?.length) {
       out += "Sources:\n";
@@ -584,6 +585,7 @@ async function sendMessage() {
       body: JSON.stringify({
         session_id: sessionId,
         message,
+        api_key: apiKeyInput.value.trim(),
         selected_context: contextToSend,
       }),
     });
@@ -597,7 +599,7 @@ async function sendMessage() {
     addMessage(data.answer, "assistant", data.sources);
   } catch (err) {
     if (loading?.isConnected) loading.remove();
-    addMessage(`Error: ${err.message}`, "assistant");
+    addMessage(`ERROR: ${err.message}`, "assistant-error");
   } finally {
     sendBtn.disabled = false;
     userInput.disabled = false;

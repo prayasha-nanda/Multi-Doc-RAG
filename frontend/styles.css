@@ -284,6 +284,15 @@ input[type="password"]:focus {
     margin-bottom: 6px;
 }
 
+.message.assistant-error {
+    background: rgba(255, 107, 107, 0.08);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.message.assistant-error .message-content {
+    color: #ff8a8a;
+}
+
 .user {
   background: var(--accent);
   margin-left: auto;

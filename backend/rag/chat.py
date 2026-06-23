@@ -1,4 +1,5 @@
 import time
+import re
 
 from google import genai
 from google.genai import types
@@ -34,6 +35,9 @@ Rules:
 - If USER SELECTED CONTEXT is provided, treat it as the most relevant part of the document.
 - Use DOCUMENT CONTEXT only for supporting details.
 - If they conflict, trust SELECTED CONTEXT more.
+
+Do not mention "selected context" or "document context" in your answer.
+Answer naturally as if responding to the user's question.
    """
 
 class RAGChatService:
@@ -41,12 +45,18 @@ class RAGChatService:
     def __init__(self, api_key, embeddings):
         self.client = genai.Client(api_key=api_key)
         self.embeddings = embeddings
+    
+    @staticmethod
+    def remove_markdown(text: str) -> str:
+        text = re.sub(r'[*_`]+', '', text)
+        return " ".join(text.split())
 
     def retrieve(self, session_id, query, k=5):
         vector_store = load_vector_store(session_id, self.embeddings)
+        query_for_search = self.remove_markdown(query)
 
         docs_and_scores = vector_store.similarity_search_with_score(
-            query,
+            query_for_search,
             k=k
         )
 

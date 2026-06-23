@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
 from pydantic import BaseModel
+from tenacity import RetryError
 
 from rag.guards import (
     validate_api_key,
@@ -20,9 +21,7 @@ from rag.embeddings import GeminiEmbeddings
 from rag.vector_store import (
     create_session_id,
     build_vector_store,
-    get_session_path,
-    save_api_key_to_session,
-    load_api_key_from_session
+    get_session_path
 
 )
 
@@ -53,6 +52,7 @@ def get_session_path(session_id):
 class ChatRequest(BaseModel):
     session_id: str
     message: str
+    api_key: str
     selected_context: str | None = None
 
 
@@ -71,7 +71,6 @@ async def upload_documents(
     validate_uploaded_files(files)
 
     session_id = create_session_id()
-    save_api_key_to_session(session_id, api_key)
 
     session_path = get_session_path(session_id)
 
@@ -127,21 +126,34 @@ async def upload_documents(
 
 @app.post("/chat")
 def chat(request: ChatRequest):
-    validate_query(request.message)
-    api_key = load_api_key_from_session(request.session_id)
+    try:
+        validate_query(request.message)
+        api_key = request.api_key
+        validate_api_key(api_key)
 
-    embeddings = GeminiEmbeddings(api_key)
+        embeddings = GeminiEmbeddings(api_key)
 
-    chat_service = RAGChatService(
-        api_key=api_key,
-        embeddings=embeddings
-    )
+        chat_service = RAGChatService(
+            api_key=api_key,
+            embeddings=embeddings
+        )
 
-    return chat_service.chat(
-        session_id=request.session_id,
-        query=request.message,
-        selected_context=request.selected_context
-    )
+        return chat_service.chat(
+            session_id=request.session_id,
+            query=request.message,
+            selected_context=request.selected_context
+        )
+
+    except RetryError as e:
+        raise HTTPException(
+            status_code=429,
+            detail="Something went wrong. Try again later or use another API key."
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="Something went wrong. Check your API key and try again."
+        )
 
 
 @app.get("/session/{session_id}")

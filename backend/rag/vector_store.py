@@ -12,22 +12,6 @@ import json
 
 INDEX_ROOT = "indexes"
 
-def save_api_key_to_session(session_id, api_key):
-    path = get_session_path(session_id)
-    os.makedirs(path, exist_ok=True)
-
-    with open(f"{path}/meta.json", "w") as f:
-        json.dump({"api_key": api_key}, f)
-
-def load_api_key_from_session(session_id):
-    path = f"indexes/{session_id}/meta.json"
-
-    if not os.path.exists(path):
-        raise Exception("Session expired")
-
-    with open(path, "r") as f:
-        return json.load(f)["api_key"]
-
 def create_session_id():
     return str(uuid.uuid4())
 
