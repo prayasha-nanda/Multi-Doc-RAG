@@ -38,7 +38,7 @@ Rules:
 
 Do not mention "selected context" or "document context" in your answer.
 Answer naturally as if responding to the user's question.
-   """
+"""
 
 class RAGChatService:
 
@@ -107,24 +107,25 @@ class RAGChatService:
         stop=stop_after_attempt(3),
         wait=wait_exponential(multiplier=1, min=2, max=10)
     )
-    def generate_answer(self, query, context, attached_context=None):
+    def generate_answer(self, query, context, attached_context=None, temperature=0.7):
+        temperature = max(0.0, min(1.0, float(temperature)))
+
         prompt = f"""
+{SYSTEM_PROMPT}
 
-        {SYSTEM_PROMPT}
+QUESTION:
 
-        QUESTION:
+{query}
 
-        {query}
-
-        USER SELECTED CONTEXT:
+USER SELECTED CONTEXT:
         
-        {attached_context if attached_context else "None"}
+{attached_context if attached_context else "None"}
 
-        DOCUMENT CONTEXT:
+DOCUMENT CONTEXT:
 
-        {context}
+{context}
 
-        ANSWER:
+ANSWER:
         """
         start = time.time()
 
@@ -132,7 +133,7 @@ class RAGChatService:
             model="gemini-2.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
-                temperature=0.7 #change to 0.0 for strict document search
+                temperature=temperature
             )
         )
 
@@ -141,7 +142,7 @@ class RAGChatService:
 
         return response.text
 
-    def chat(self, session_id, query, selected_context=None):
+    def chat(self, session_id, query, selected_context=None, temperature=0.7):
         total_start = time.time()
         retrieval_start = time.time()
         retrieval_query = query
@@ -166,6 +167,8 @@ Find context that explains or relates to the passage.
         print(f"\nRetrieval time: {retrieval_time:.2f}s")
 
         # --- DEBUG: See what was fetched ---
+        print()
+        print("TEMPERATURE:", temperature)
         print()
         print("USER QUESTION:", query)
         print()
@@ -200,7 +203,8 @@ Find context that explains or relates to the passage.
         answer = self.generate_answer(
             query=query,
             context=context,
-            attached_context=selected_context
+            attached_context=selected_context,
+            temperature=temperature
         )
         print("\nANSWER:")
         print(answer)

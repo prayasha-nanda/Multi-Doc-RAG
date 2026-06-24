@@ -14,6 +14,8 @@ const uploadBtn = document.getElementById("uploadBtn");
 const statusCard = document.getElementById("statusCard");
 const setupCard = document.getElementById("setupCard");
 const toggleSetupBtn = document.getElementById("toggleSetupBtn");
+const temperatureSlider = document.getElementById("temperatureSlider");
+const temperatureDescription = document.getElementById("temperatureDescription");
 
 const workspaceContainer = document.getElementById("workspaceContainer");
 const chatSection = document.getElementById("chatSection");
@@ -57,6 +59,30 @@ let chatHistory = [];
 let activeResizing = false;
 let currentSelectedText = "";
 let attachedContext = "";
+
+function updateTemperatureLabel() {
+  const temp = parseFloat(temperatureSlider.value);
+
+  let description = "";
+
+  if (temp <= 0.2) {
+    description = "Highly factual and deterministic, like a search engine";
+  } else if (temp <= 0.4) {
+    description = "Focused search-style responses";
+  } else if (temp <= 0.6) {
+    description = "Mostly factual with some flexibility";
+  } else if (temp <= 0.8) {
+    description = "Balanced responses";
+  } else {
+    description = "Creative and exploratory responses";
+  }
+
+  temperatureDescription.textContent = `Current temperature is ${temp.toFixed(1)} — ${description}`;
+}
+
+temperatureSlider.addEventListener("input", updateTemperatureLabel);
+
+updateTemperatureLabel();
 
 /* =========================
 SESSION RESTORE
@@ -557,6 +583,7 @@ async function sendMessage() {
 
   const apiKey = apiKeyInput.value.trim();
   const message = userInput.value.trim();
+  const temperature = parseFloat(temperatureSlider.value);
 
   if (!apiKey) return alert("Enter API key");
   if (!sessionId) return alert("Upload files");
@@ -585,8 +612,9 @@ async function sendMessage() {
       body: JSON.stringify({
         session_id: sessionId,
         message,
-        api_key: apiKeyInput.value.trim(),
+        api_key: apiKey,
         selected_context: contextToSend,
+        temperature: temperature
       }),
     });
 

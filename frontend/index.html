@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Multi-Document RAG</title>
+    <title>Multi-Document RAG | Prayasha Nanda</title>
+    <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -23,6 +24,38 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <nav class="top-bar">
+      <div class="top-bar-left">
+        <span class="owner-name">Prayasha Nanda</span>
+      </div>
+
+      <div class="top-bar-right">
+        <a
+          href="https://github.com/prayasha-nanda"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fa-brands fa-github"></i> GitHub
+        </a>
+
+        <a
+          href="https://drive.google.com/file/d/1Qzh17RGF1fFxsOZthT45m7EHEM0p7rPn/view?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fa-solid fa-file"></i> Resume
+        </a>
+
+        <a
+          href="https://prayasha-nanda.github.io/"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fa-solid fa-globe"></i> Portfolio
+        </a>
+      </div>
+    </nav>
+
     <div class="background-glow"></div>
 
     <div class="app">
@@ -48,6 +81,28 @@
             id="apiKey"
             placeholder="Enter your Gemini API key"
           />
+        </div>
+        <div class="input-group">
+          <label for="temperatureSlider"> Temperature </label>
+
+          <div class="temperature-wrapper">
+            <span>Search</span>
+
+            <input
+              type="range"
+              id="temperatureSlider"
+              min="0"
+              max="1"
+              step="0.1"
+              value="0.7"
+            />
+
+            <span>Creative</span>
+          </div>
+
+          <div id="temperatureDescription" class="temperature-description">
+            Current temperature is 0.7 — Balanced responses
+          </div>
         </div>
 
         <div id="dropZone" class="drop-zone">
@@ -143,5 +198,9 @@
     </div>
 
     <script src="chat.js"></script>
+
+    <div class="hero-subline">
+      <p>All rights reserved © 2026 Prayasha Nanda</p>
+    </div>
   </body>
 </html>

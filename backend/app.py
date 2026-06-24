@@ -54,6 +54,7 @@ class ChatRequest(BaseModel):
     message: str
     api_key: str
     selected_context: str | None = None
+    temperature: float = 0.7
 
 
 @app.get("/")
@@ -141,15 +142,21 @@ def chat(request: ChatRequest):
         return chat_service.chat(
             session_id=request.session_id,
             query=request.message,
-            selected_context=request.selected_context
+            selected_context=request.selected_context,
+            temperature=request.temperature
         )
 
     except RetryError as e:
+        print(e)
+
+        if e.last_attempt:
+            print("Underlying error:", e.last_attempt.exception())
         raise HTTPException(
             status_code=429,
             detail="Something went wrong. Try again later or use another API key."
         )
     except Exception:
+        print(e)
         raise HTTPException(
             status_code=400,
             detail="Something went wrong. Check your API key and try again."
