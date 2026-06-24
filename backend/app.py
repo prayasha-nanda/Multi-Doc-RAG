@@ -156,7 +156,6 @@ def chat(request: ChatRequest):
             detail="Something went wrong. Try again later or use another API key."
         )
     except Exception:
-        print(e)
         raise HTTPException(
             status_code=400,
             detail="Something went wrong. Check your API key and try again."
