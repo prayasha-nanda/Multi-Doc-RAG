@@ -17,7 +17,7 @@ The system retrieves the most relevant document chunks, filters low-relevance ma
 ## Project Structure
 
 ```text
-basic-rag/
+Multi-Doc-RAG/
 │
 ├── backend/
 │   ├── app.py
@@ -36,24 +36,10 @@ basic-rag/
 │
 ├── indexes/                    # This is in .gitignore
 │
+├── samples/                    # For demonstration purposes
+│
 └── README.md
 ```
-
----
-This is my backlog:
-- tweaking prompts / changing number of chunks sent / temperature etc. - all scenario-based
-- add a slider to control model temperature
-- the UI eeds to have a model control tab, the congifuration details have to be folded and unfolded automatically a bit more, copy button & context UI fixed
-- fix the show config in the active session
-- invalid API key crashes the app, so need to make an error message (also resource exhausted error)
-- locally download the file - working on it
-- chatbox becoming a bit larger for more than one line? - i like it in one line. not required. 2k characters query limit is also ok.
-- sending context with the floating "Add to prompt" button - done!!
-
-disclaimer:
-0.80 can have tiny bleeds. i decided on this threshold after testing multiple prompts.
-
-temperature 0.7 currently
 
 ---
 
@@ -65,39 +51,75 @@ temperature 0.7 currently
 - Source chunk inspection with page references
 - Interactive PDF viewer built with PDF.js
 - Text selection and "Add to Prompt" workflow
-- Persistent local sessions
-- Session restoration after page refresh
+- Session-based document management with persistent indexing
 - Downloadable chat history
-- Local PDF storage for document reloading
 - Query validation and input guards
+
+---
+
+## Screenshots
+
+### Configuration Menu
+
+![Configuration Menu](samples/config.png)
+
+### Chat Interface + PDF Viewer
+
+![Chat Interface and PDF Viewer](samples/chat.png)
+
+### Demonstration of Context Selection + Source Chunk Inspection
+
+![Demonstration GIF](samples/demo.gif)
+
+---
+
+## Technical Highlights
+
+- Built a Retrieval-Augmented Generation (RAG) pipeline using Gemini embeddings and FAISS.
+- Implemented similarity-threshold filtering to reject low-relevance retrievals.
+- Added query validation guards to reduce malformed and spam inputs.
+- Developed a PDF.js-based document viewer with contextual passage selection.
+- Evaluated retrieval quality across 15 benchmark queries and analyzed chunk utilization.
 
 ---
 
 ## Architecture
 
 ```text
-User Question
-      │
-      ▼
-FAISS Similarity Search
-      │
-      ▼
-Top-k Retrieved Chunks
-      │
-      ▼
-Similarity Threshold Filtering
-      │
-      ▼
+PDF Upload
+     │
+     ▼
+Text Extraction
+     │
+     ▼
+Chunking
+     │
+     ▼
+Gemini Embeddings
+     │
+     ▼
+FAISS Index
+     │
+     ▼
+User Query
+     │
+     ▼
+Similarity Search
+     │
+     ▼
+Threshold Filtering
+     │
+     ▼
 Context Construction
-      │
-      ▼
+     │
+     ▼
 Gemini 2.5 Flash
-      │
-      ▼
-Grounded Response + Source Chunks
+     │
+     ▼
+Answer + Sources
 ```
 
-Documents are chunked using a RecursiveCharacterTextSplitter and embedded using Gemini embeddings before being indexed in FAISS.
+Documents are chunked using a `RecursiveCharacterTextSplitter` and embedded using Gemini embeddings before being indexed in FAISS.
 
 ---
 
@@ -109,6 +131,8 @@ The system was evaluated using 15 manually curated queries covering:
 - Multi-chunk synthesis
 - Unsupported-information queries
 - Hallucination resistance scenarios
+
+Temperature set: 0.0 (Deterministic)
 
 | Metric | Result |
 |----------|----------:|
@@ -129,6 +153,7 @@ The system was evaluated using 15 manually curated queries covering:
 - Retrieved an average of **3.73 chunks** per query.
 - Generated responses using an average of **2.07 chunks**, indicating successful filtering of irrelevant context.
 - Only **1 query resulted in a complete failure**.
+- These results indicate that the LLM was generally grounded in retrieved document content, using the PDF as the source of truth.
 
 Find the entire analysis in the [excel sheet](samples/evaluation_of_my_RAG.xlsx): `samples/evaluation_of_my_RAG.xlsx`
 
@@ -141,7 +166,7 @@ Find the entire analysis in the [excel sheet](samples/evaluation_of_my_RAG.xlsx)
 ```bash
 git clone https://github.com/prayasha-nanda/Multi-Doc-RAG.git
 
-cd Multi-doc-RAG
+cd Multi-Doc-RAG
 ```
 
 ---
@@ -182,11 +207,7 @@ pip install -r requirements.txt
 uvicorn app:app --reload
 ```
 
-Backend will run on:
-
-```text
-http://127.0.0.1:8000
-```
+Backend will run on: http://127.0.0.1:8000
 
 ---
 
@@ -198,37 +219,11 @@ Using Python:
 python -m http.server 3000
 ```
 
-Then open:
+Then open: http://localhost:3000
 
-```text
-http://localhost:3000
-```
+Enter your Gemini API key and one or more PDF documents. The temperature is set to 0.7 by default. After clicking on **Index Documents**, the system will extract the PDF's text and create embeddings to build a FAISS vector index.
 
----
-
-## Usage
-
-### Step 1
-
-Enter your Gemini API key.
-
-### Step 2
-
-Upload one or more PDF documents.
-
-### Step 3
-
-Click **Index Documents**.
-
-The system will:
-
-* Extract PDF text
-* Create embeddings
-* Build a FAISS vector index
-
-### Step 4
-
-Ask questions about the uploaded documents.
+Then you can ask questions about the uploaded documents!
 
 Examples:
 
@@ -272,7 +267,7 @@ Users can:
 
 * Continue previous sessions
 * Start a new session
-* Delete existing sessions (by themselves, it will be stored locally in a folder `backend/indexes`)
+* Delete existing sessions (but session files stored locally in the folder `backend/indexes` has to be deleted manually)
 
 ---
 
@@ -280,28 +275,32 @@ Users can:
 
 Indexed PDFs can be reopened directly inside the application using PDF.js.
 
-Features include:
-
-* Selectable text
-* Multi-page rendering
-* Source verification
-* Context extraction from highlighted passages
-
-Users can highlight text inside a document and attach it directly to a question using the **Add to Prompt** action.
+Users can highlight text inside a document and attach it directly to a question using the **Add to Prompt** button.
 
 ---
 
 ## Context-Aware Questioning
 
-In addition to standard document search, users can attach a selected passage from a PDF to their question.
-
-The selected passage is:
+In addition to standard document search, when users attach a selected passage from a PDF to their question, the selected passage is:
 
 1. Added to the retrieval query
 2. Prioritized during answer generation
 3. Passed separately to the LLM as user-selected context
 
 This helps improve retrieval quality for questions that reference specific parts of a document.
+
+---
+
+## Retrieval Configuration
+
+| Setting | Value |
+|----------|---------:|
+| Embedding Model | Gemini Embeddings |
+| Vector Store | FAISS |
+| Top-k Retrieval | 5 |
+| Similarity Threshold | 0.90 |
+| Generation Model | Gemini 2.5 Flash |
+| Temperature | 0.70 (user configurable) |
 
 ---
 
@@ -345,4 +344,6 @@ Prayasha Nanda, in my hunt to learn more and create more.
 
 ## License
 
-MIT License
+MIT License.
+
+Copyright (c) 2026 Prayasha Nanda
