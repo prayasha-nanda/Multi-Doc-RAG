@@ -218,7 +218,7 @@ document.addEventListener("mouseup", () => {
   }
 });
 
-// Structural collapsibility handler toggle hook engine
+// Structural collapsibility handler toggle hook
 togglePdfBtn.addEventListener("click", () => {
   pdfPanel.classList.toggle("collapsed");
 });
@@ -334,7 +334,7 @@ function updatePdfSelector() {
 }
 
 /* =========================
-PDF RENDERING CORE ENGINE (PDF.js Text Layer Integration)
+PDF RENDERING (PDF.js Text Layer Integration)
 ========================= */
 pdfSelector.addEventListener("change", async (e) => {
   const fileName = e.target.value;
@@ -411,7 +411,7 @@ pdfSelector.addEventListener("change", async (e) => {
 });
 
 /* =========================
-HIGHLIGHT TEXT SELECTION SEED ENGINE (ChatGPT-style Action)
+HIGHLIGHT TEXT SELECTION
 ========================= */
 document.addEventListener("selectionchange", () => {
   const selection = window.getSelection();
