@@ -12,6 +12,12 @@ The system retrieves the most relevant document chunks, filters low-relevance ma
   <img src="https://img.shields.io/badge/FAISS-044F88?style=flat-square&logo=meta&logoColor=white" />
 </p>
 
+### Try it out!
+
+**🌐 [Live Demo](https://multidoc-rag.vercel.app/)**
+
+**▶️ [How It Works (70-second walkthrough)](https://www.youtube.com/watch?v=7nJ5IE0Cjxw)**
+
 ---
 
 ## Project Structure
